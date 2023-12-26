@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+ <title>CleanUp</title>
+     <!-- Favicons -->
+<link href="favicon.png" rel="icon">
+  <link href="favicon.png" rel="apple-touch-icon">
+  <link rel="stylesheet" href="dass.css" />
+  <script src="https://www.gstatic.com/firebasejs/8.2.6/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.2.6/firebase-firestore.js"></script>
+  <!-- Font Awesome Cdn Link -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
+</head>
+<body>
+  <div class="container">
+    <nav>
+  <ul>
+    <li>
+      <a href="#" class="logo">
+        <img src="logo.png" alt="CleanUp Logo" class="logo-image">
+      
+      </a>
+
+    </li>
+    <li>
+      <a href="dash.html">
+        <i class="fas fa-menorah"></i>
+        <span class="nav-item">réclamations</span>
+      </a>
+    </li>
+    <li>
+      <a href="prof.html">
+        <i class="fas fa-cog"></i>
+        <span class="nav-item">Paramétres</span>
+      </a>
+    </li>
+    <li>
+      <a href="file:///C:/Users/HP/Dropbox/Mon%20PC%20(LAPTOP-ICKV63EH)/Desktop/cleanup%20web/Signin.htmll" class="logout">
+        <i class="fas fa-sign-out-alt"></i>
+        <span class="nav-item">sortir</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+
+    <section class="main">
+      <div class="main-top">
+        <h1>"كيما قالو ناس بكري : لي فاتك بالزين فوتو بالنظافة "</h1>
+        <i class="fas fa-user-cog"></i>
+      </div>
+      <section class="attendance" width="10%" height="10%">
+        <div class="attendance-list">
+          <h1>liste des réclamations</h1>
+          <table class="table" id="myTable">
+            <thead>
+              <tr>
+                <th>image</th>
+                <th>Adresse de réclamation</th>
+                <th>Municipalite</th>
+                <th>Type de déchets</th>
+                <th>état des réclamation</th>
+                <th></th>
+                <th>Actions</th>
+                <th></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- Les données de la collection "reclamations" seront ajoutées ici -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </div>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-messaging.js"></script>
+  <script>
+    // Configuration de votre projet Firebase
+    const firebaseConfig = {
+  apiKey: "AIzaSyDBh8RH6bfPsfbhjUoYxYM1xwLuhBZMrfI",
+  authDomain: "cleanup-96db1.firebaseapp.com",
+  databaseURL: "https://cleanup-96db1-default-rtdb.firebaseio.com",
+  projectId: "cleanup-96db1",
+  storageBucket: "cleanup-96db1.appspot.com",
+  messagingSenderId: "395749114288",
+  appId: "1:395749114288:web:55cec4d678833333d81675",
+  measurementId: "G-8XT4MCC635"
+};
+    // Initialisation de l'application Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Récupération de la référence à la collection "reclamations"
+    var db = firebase.firestore();
+    var reclamationsRef = db.collection("Reclamations");
+
+    // Récupération de la référence à l'élément tbody du tableau
+    var tableBody = document.getElementById("tableBody");
+
+    // Fonction pour ajouter une ligne au tableau avec les données de la réclamation
+    function addTableRow(reclamation) {
+      var row = document.createElement("tr");
+
+      // Colonne de la photo
+        var photoCol = document.createElement("td");
+        var photoImg = document.createElement("img");
+        photoImg.className = "img";
+        photoImg.src = reclamation.image;
+        photoImg.style.height = "100px"; // Modifier la hauteur de l'image
+        photoImg.style.width = "100px"; // Modifier la largeur de l'image
+        photoCol.appendChild(photoImg);
+        row.appendChild(photoCol);
+
+      // Colonne de l'adresse de réclamation
+      var adresseCol = document.createElement("td");
+      adresseCol.textContent = reclamation.Adresseréclamation;
+      row.appendChild(adresseCol);
+
+     
+
+      // Colonne de la municipalité
+      var municipaliteCol = document.createElement("td");
+      municipaliteCol.textContent = reclamation.Municipalite;
+      row.appendChild(municipaliteCol);
+
+      // Colonne du type
+      var typeCol = document.createElement("td");
+      typeCol.textContent = reclamation.wasteType;
+      row.appendChild(typeCol);
+      // Colonne de l'état des réclamations
+var etatCol = document.createElement("td");
+etatCol.textContent = "En attente"; // Default status is "En attente"
+row.appendChild(etatCol);
+
+      // Colonne du bouton "localion"
+      var voirCol = document.createElement("td");
+      var voirButton = document.createElement("button");
+      var voirLink = document.createElement("a");
+      voirLink.href = "voir.html";
+      voirLink.textContent = "localisation";
+      voirButton.appendChild(voirLink);
+      voirCol.appendChild(voirButton);
+      row.appendChild(voirCol);
+
+       // Colonne du bouton "Encours"
+    var encoursCol = document.createElement("td");
+    var encoursButton = document.createElement("button");
+    encoursButton.textContent = "Encours";
+  encoursButton.addEventListener("click", function () {
+  etatCol.textContent = "Encours";
+  envoyerNotification(reclamation);
+});
+
+    encoursCol.appendChild(encoursButton);
+    row.appendChild(encoursCol);
+
+      // Colonne du bouton "Résolu"
+      var resoluCol = document.createElement("td");
+      var resoluButton = document.createElement("button");
+      resoluButton.textContent = "Résolu";
+      resoluButton.addEventListener("click", function () {
+  etatCol.textContent = "Résolu";
+});
+      resoluCol.appendChild(resoluButton);
+      row.appendChild(resoluCol);
+      
+      // Colonne du bouton "supprimer"
+      var supprimerCol = document.createElement("td");
+      var supprimerButton = document.createElement("button");
+      supprimerButton.textContent = "supprimer";
+      supprimerButton.addEventListener("click", function () {
+        supprimerLigne(this);
+      });
+      supprimerCol.appendChild(supprimerButton);
+      row.appendChild(supprimerCol);
+
+     
+      // Ajouter la ligne au tableau
+      tableBody.appendChild(row);
+    }
+
+    // Récupération de toutes les réclamations de Firestore et ajout au tableau
+    reclamationsRef.get().then((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        var reclamation = doc.data();
+        addTableRow(reclamation);
+      });
+    }).catch((error) => {
+      console.log("Erreur lors de la récupération des réclamations : ", error);
+    });
+
+    // Fonction pour supprimer une ligne du tableau
+    function supprimerLigne(element) {
+      var row = element.parentNode.parentNode; // Récupère la ligne parente (tr)
+      row.parentNode.removeChild(row); // Supprime la ligne du tableau
+    }
+    // Fonction pour envoyer une notification à l'application mobile
+  function envoyerNotification(reclamation) {
+    var messaging = firebase.messaging();
+    messaging.requestPermission().then(function() {
+      console.log('Notification permission granted.');
+      // Obtention du jeton d'inscription de l'utilisateur
+      messaging.getToken().then(function(token) {
+        // Envoi du message à l'application mobile
+        var message = {
+          token: token,
+          data: {
+            reclamationId: reclamation.id,
+            status: 'En cours'
+          }
+        };
+        // Envoi du message via Firebase Cloud Messaging
+        firebase.messaging().send(message)
+          .then(function(response) {
+            console.log('Notification sent successfully:', response);
+          })
+          .catch(function(error) {
+            console.log('Notification sent failed:', error);
+          });
+      }).catch(function(error) {
+        console.log('Error while retrieving token:', error);
+      });
+    }).catch(function(error) {
+      console.log('Notification permission denied:', error);
+    });
+  }
+  </script>
+</body>
+</html>
